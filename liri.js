@@ -1,16 +1,16 @@
 require("dotenv").config();
-
+var fs = require("file-system")
 var moment = require("moment")
 var keys = require("./keys.js");
-//var spotify = new Spotify(keys.spotify);
+var Spotify = require('node-spotify-api')
+var spotify = new Spotify(keys.spotify);
 
 var axios = require("axios")
-
 var input = process.argv
 var command = input[2]
+var arg = input.slice(3).join(" ")
 
-if (command == "concert-this"){
-    artist = input[3]
+function concertThis(artist){
     axios({
         method: "get",
         url: "https://rest.bandsintown.com/artists/" + artist + "/events?app_id=codingbootcamp",
@@ -25,8 +25,7 @@ if (command == "concert-this"){
     })
 }
 
-else if (command == "movie-this"){
-    movie = input[3]
+function movieThis(movie){
     axios({
         method: "get",
         url: "http://www.omdbapi.com/?apikey=trilogy&t=" + movie
@@ -42,3 +41,42 @@ else if (command == "movie-this"){
     console.log("Actors: " + res.data.Actors)
 })
 }
+
+function songThis(song){
+    spotify.search({ type: 'track', query: song }, function(err, data) { if (err) {
+        return console.log('Error occurred: ' + err);
+      }
+      
+     for(var i = 0 ; i < data.tracks.items.length; i++){
+        console.log("Song Name: " + data.tracks.items[i].name)
+        console.log("Preview: " + data.tracks.items[i].external_urls.spotify)
+        console.log("Album: " + data.tracks.items[i].album.name)
+    
+      for (var j = 0; j < data.tracks.items[i].artists.length; j++){
+      console.log("Artists: " + data.tracks.items[i].artists[j].name)}
+      console.log("***********************")  }; 
+    });
+}
+
+function doWhatever(){
+    fs.readFile("./random.txt", "utf8", function(err, data){
+    data = data.split(",")
+    var count = Math.floor(data.length / 2)
+    console.log(count)
+    for (var i =0 ; i < count; i++){
+        command = data[i * 2]
+        randArg = data [(i * 2) + 1]
+        checkCommand(randArg)
+    }
+
+    })
+}
+
+function checkCommand(arg){
+if(command == "movie-this") {movieThis(arg)}
+else if(command == "concert-this") {concertThis(arg)}
+else if (command == "spotify-this-song") {songThis(arg)}
+else if (command == "do-what-it-says") {doWhatever()} }
+
+checkCommand(arg)
+
